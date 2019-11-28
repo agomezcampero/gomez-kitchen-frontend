@@ -1,5 +1,8 @@
 import React, { Component } from "react";
-import { getIngredients } from "../../services/ingredientsService";
+import {
+  getIngredients,
+  getLiderIngredients
+} from "../../services/ingredientsService";
 import IngredientsSearchTable from "./ingredientsSearchTable";
 import auth from "../../services/authService";
 import SearchForm from "./../common/searchForm";
@@ -22,6 +25,12 @@ class IngredientSearch extends Component {
     this.setState({ ingredients });
   };
 
+  handleLiderSearch = async query => {
+    const { data } = await getLiderIngredients(query);
+    let ingredients = data.data;
+    this.setState({ ingredients });
+  };
+
   handleDelete = ingredient => {
     const ingredients = this.state.ingredients.filter(
       i => i._id !== ingredient._id
@@ -37,6 +46,10 @@ class IngredientSearch extends Component {
         <SearchForm
           onSubmit={this.handleSearch}
           buttonText="Buscar más ingredientes"
+        />
+        <SearchForm
+          onSubmit={this.handleLiderSearch}
+          buttonText="Buscar en Lider"
         />
         <IngredientsSearchTable
           ingredients={ingredients}

@@ -11,7 +11,11 @@ export function getMyIngredients() {
 }
 
 export function getIngredients(query) {
-  return http.get(endpoint + `?search=${query.replace(/ /g, "+")}`);
+  return http.get(`${endpoint}?search=${query.replace(/ /g, "+")}`);
+}
+
+export function getLiderIngredients(query) {
+  return http.get(`${endpoint}/lider?query=${query.replace(/ /g, "+")}`);
 }
 
 export function deleteIngredient(id) {

@@ -113,7 +113,7 @@ class Ingredients extends Component {
     });
   };
 
-  addIngredientToTable = ingredient => {
+  addIngredientToTable = async ingredient => {
     const ingredients = [...this.state.ingredients];
     ingredients.push(ingredient);
     this.setState({ ingredients });

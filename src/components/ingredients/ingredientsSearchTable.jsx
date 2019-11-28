@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 import Table from "../common/table";
 import Plus from "../common/plus";
-import { followIngredient } from "../../services/ingredientsService";
+import {
+  followIngredient,
+  saveLiderIngredient
+} from "../../services/ingredientsService";
 import { toast } from "react-toastify";
 
 class IngredientsSearchTable extends Component {
@@ -33,9 +36,15 @@ class IngredientsSearchTable extends Component {
 
   async addIngredient(ingredient) {
     try {
-      await followIngredient(ingredient._id);
+      if (!ingredient._id) {
+        const data = await saveLiderIngredient(ingredient.liderId);
+        ingredient = data.data;
+      } else {
+        await followIngredient(ingredient._id);
+      }
       this.props.onAddedIngredient(ingredient);
       this.props.onDelete(ingredient);
+      toast.success(`${ingredient.name} agregado`);
     } catch (ex) {
       toast.error("Error agregando ingrediente, volver a intentar");
     }

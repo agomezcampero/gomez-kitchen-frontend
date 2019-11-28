@@ -22,8 +22,8 @@ class TableBody extends Component {
     const { data, columns } = this.props;
     return (
       <tbody>
-        {data.map(item => (
-          <tr key={item._id}>
+        {data.map((item, i) => (
+          <tr key={item._id || i}>
             {columns.map(column => (
               <td key={column.path || column.key}>
                 {this.renderCell(item, column)}
