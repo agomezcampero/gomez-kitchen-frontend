@@ -17,6 +17,11 @@ import Calculator from "./components/calculate/calculator";
 import ProtectedRoute from "./components/common/protectedRoute";
 
 function App() {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+    console.log("dev");
+  } else {
+    console.log("prod");
+  }
   return (
     <React.Fragment>
       <ToastContainer />
