@@ -78,8 +78,11 @@ class IngredientForm extends Form {
 
   doSubmit = async () => {
     try {
-      await saveIngredient(this.state.data);
-      toast.success("Ingrediente guardado");
+      const { data: ingredient } = await saveIngredient(this.state.data);
+      toast.success(
+        `Ingrediente guardado\n${ingredient.name}\n$${ingredient.price} ${ingredient.amount} ${ingredient.unit}`
+      );
+      this.props.onIngredientSave(ingredient);
     } catch (ex) {
       toast.error("No se pudo guardar el ingrediente");
     }

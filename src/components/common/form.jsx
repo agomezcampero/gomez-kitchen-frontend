@@ -6,7 +6,8 @@ import Select from "./select";
 class Form extends Component {
   state = {
     data: {},
-    errors: {}
+    errors: {},
+    loading: false
   };
 
   validate = () => {
@@ -29,13 +30,16 @@ class Form extends Component {
     return error ? error.details[0].message : null;
   };
 
-  handleSubmit = e => {
+  handleSubmit = async e => {
     e.preventDefault();
+
+    this.setState({ loading: true });
 
     const errors = this.validate();
     this.setState({ errors: errors || {} });
     if (errors) return;
-    this.doSubmit();
+    const response = await this.doSubmit();
+    if (response || !response) this.setState({ loading: false });
   };
 
   handleChange = ({ currentTarget: input }) => {
@@ -50,9 +54,11 @@ class Form extends Component {
   };
 
   renderButton(label) {
+    const { loading } = this.state;
     return (
-      <button disabled={this.validate()} className="btn btn-primary">
-        {label}
+      <button disabled={this.validate() || loading} className="btn btn-primary">
+        {!loading && label}
+        {loading && <i className="fa fa-spinner fa-spin"></i>}
       </button>
     );
   }
