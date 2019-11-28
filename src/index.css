@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.clickable {
+  cursor: pointer;
+}
+
+.align-right {
+  float: right;
+}
+
+.editable {
+  float: left;
+}
+
+.blue {
+  color: blue;
+}
