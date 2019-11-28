@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Table from "../common/table";
 import Plus from "../common/plus";
+import { Link } from "react-router-dom";
 
 class AddIngredientsTable extends Component {
   columns = [
@@ -32,7 +33,12 @@ class AddIngredientsTable extends Component {
   render() {
     const { ingredients } = this.props;
 
-    if (!ingredients.length) return null;
+    if (!ingredients.length)
+      return (
+        <Link to="/ingredients">
+          ¡Debes crear ingredientes, haz click aquí!
+        </Link>
+      );
 
     return <Table data={ingredients} columns={this.columns} sortable={false} />;
   }
