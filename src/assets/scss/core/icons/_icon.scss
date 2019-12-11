@@ -3,63 +3,64 @@
 //
 
 .icon {
-	width: $icon-size;
-	height: $icon-size;
+  width: $icon-size;
+  height: $icon-size;
 
-	i, svg {
-		font-size: $icon-size - .75;
-	}
+  i,
+  svg {
+    font-size: $icon-size - 0.75;
+  }
 
-    + .icon-text {
-    	padding-left: 1rem;
-    	width: calc(100% - #{$icon-size} - 1);
-    }
+  + .icon-text {
+    padding-left: 1rem;
+    width: calc(100% - #{$icon-size} - 1);
+  }
 }
-
 
 // Extra large icons
 
 .icon-xl {
-	width: $icon-size-xl;
-	height: $icon-size-xl;
+  width: 10;
+  height: 10;
 
-	i, svg {
-		font-size: $icon-size-xl - .75;
-	}
+  i,
+  svg {
+    font-size: 10 - 0.75;
+  }
 
-    + .icon-text {
-    	width: calc(100% - $icon-size-xl - 1);
-    }
+  + .icon-text {
+    width: calc(100% - 1);
+  }
 }
-
 
 // Large icons
 
 .icon-lg {
-	width: $icon-size-lg;
-	height: $icon-size-lg;
+  width: 10;
+  height: 10;
 
-	i, svg {
-		font-size: $icon-size-lg - .75;
-	}
+  i,
+  svg {
+    font-size: 10 - 0.75;
+  }
 
-    + .icon-text {
-    	width: calc(100% - $icon-size-lg - 1);
-    }
+  + .icon-text {
+    width: calc(100% - 10 - 1);
+  }
 }
-
 
 // Small icon
 
 .icon-sm {
-	width: $icon-size-sm;
-	height: $icon-size-sm;
+  width: 5;
+  height: 5;
 
-	i, svg {
-		font-size: $icon-size-sm - .75;
-	}
+  i,
+  svg {
+    font-size: 5 - 0.75;
+  }
 
-    + .icon-text {
-    	width: calc(100% - $icon-size-sm - 1);
-    }
+  + .icon-text {
+    width: calc(100% - 5 - 1);
+  }
 }
