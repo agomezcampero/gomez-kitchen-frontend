@@ -4,44 +4,31 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // import logo from "./logo.svg";
 import "./App.css";
-import GomezNavbar from "./components/gomezNavbar";
 import LoginForm from "./components/loginForm";
 import Logout from "./components/logout";
 import RegisterForm from "./components/registerForm";
-import Ingredients from "./components/ingredients/ingredients";
-import IngredientForm from "./components/ingredients/ingredientForm";
-import Recipes from "./components/recipes/recipes";
-import Recipe from "./components/recipes/recipe";
-import RecipeForm from "./components/recipes/recipeForm";
-import Calculator from "./components/calculate/calculator";
 import ProtectedRoute from "./components/common/protectedRoute";
+import AdminLayout from "./layouts/Admin";
+import UserLayout from "./layouts/User";
+import AuthLayout from "./layouts/Auth";
 
 function App() {
   return (
     <React.Fragment>
       <ToastContainer />
-      <GomezNavbar />
-      <main className="container">
-        <div className="content">
-          <Switch>
-            <Route path="/register" component={RegisterForm} />
-            <Route path="/login" component={LoginForm} />
-            <ProtectedRoute path="/logout" component={Logout} />
-            <ProtectedRoute
-              path="/ingredients/:id"
-              component={IngredientForm}
-            />
-            <ProtectedRoute path="/ingredients" component={Ingredients} />
-            <ProtectedRoute path="/recipes/new" component={RecipeForm} />
-            <ProtectedRoute path="/recipes/:id/edit" component={RecipeForm} />
-            <ProtectedRoute path="/recipes/:id" component={Recipe} />
-            <ProtectedRoute path="/recipes" component={Recipes} />
-            <ProtectedRoute path="/calculate" component={Calculator} />
-            <Redirect from="/" to="/recipes" exact />
-            <Redirect to="not-found" />
-          </Switch>
-        </div>
-      </main>
+      <Switch>
+        <Route path="/admin" component={AdminLayout} />
+        <ProtectedRoute
+          path="/user"
+          render={props => <UserLayout {...props} />}
+        />
+        <Route path="/auth" render={props => <AuthLayout {...props} />} />
+        <Route path="/register" component={RegisterForm} />
+        <Route path="/login" component={LoginForm} />
+        <ProtectedRoute path="/logout" component={Logout} />
+        <Redirect from="/" to="/user/recipes" exact />
+        <Redirect to="not-found" />
+      </Switch>
     </React.Fragment>
   );
 }

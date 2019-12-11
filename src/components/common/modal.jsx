@@ -15,20 +15,24 @@ const Modal = ({
   primaryBtnText,
   onPrimaryBtnClick,
   secondaryBtnText,
-  onSecondaryBtnClick
+  onSecondaryBtnClick,
+  size,
+  form
 }) => {
   return (
     <div>
-      <RSModal isOpen={showModal} toggle={toggle}>
+      <RSModal isOpen={showModal} toggle={toggle} size={size}>
         <ModalHeader toggle={toggle}>{header}</ModalHeader>
         <ModalBody>{body}</ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={onPrimaryBtnClick}>
+          <Button color="primary" onClick={onPrimaryBtnClick} form={form}>
             {primaryBtnText}
           </Button>
-          <Button color="secondary" onClick={onSecondaryBtnClick}>
-            {secondaryBtnText}
-          </Button>
+          {secondaryBtnText && (
+            <Button color="secondary" onClick={onSecondaryBtnClick}>
+              {secondaryBtnText}
+            </Button>
+          )}
         </ModalFooter>
       </RSModal>
     </div>

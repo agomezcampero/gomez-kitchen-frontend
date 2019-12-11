@@ -15,7 +15,7 @@ class RecipesTable extends Component {
       label: "Nombre",
       path: "name",
       content: recipe => (
-        <Link to={`/recipes/${recipe._id}`}>{recipe.name}</Link>
+        <Link to={`/user/recipes/${recipe._id}`}>{recipe.name}</Link>
       )
     },
     { path: "price", label: "Precio" },
@@ -39,14 +39,14 @@ class RecipesTable extends Component {
   ];
 
   render() {
-    const { recipes, sortColumn, onSort } = this.props;
+    const { recipes, ...rest } = this.props;
 
     return (
       <Table
+        title="Mis Recetas"
         data={recipes}
-        onSort={onSort}
         columns={this.columns}
-        sortColumn={sortColumn}
+        {...rest}
       />
     );
   }

@@ -51,11 +51,20 @@ class IngredientsSearchTable extends Component {
   }
 
   render() {
-    const { ingredients } = this.props;
+    const { ingredients, ...rest } = this.props;
 
-    if (!ingredients.length) return null;
+    if (!ingredients.length)
+      return <h2>No se encontraron ingredientes, pruebe otra búsqueda</h2>;
 
-    return <Table data={ingredients} columns={this.columns} sortable={false} />;
+    return (
+      <Table
+        title="Resultados"
+        data={ingredients}
+        columns={this.columns}
+        sortable={false}
+        {...rest}
+      />
+    );
   }
 }
 

@@ -2,6 +2,11 @@ import React, { Component } from "react";
 import { getRecipe } from "../../services/recipesService";
 import auth from "../../services/authService";
 import RecipeIngredientsTable from "./recipeIngredientsTable";
+import { Container, Col, Row } from "reactstrap";
+import RecipeHeader from "../Headers/RecipeHeader";
+import { paginate } from "./../../utils/paginate";
+import RecipeInstructions from "./recipeInstructions";
+import { withRouter } from "react-router-dom";
 
 class Recipe extends Component {
   state = {
@@ -15,7 +20,15 @@ class Recipe extends Component {
       followers: [],
       owner: ""
     },
+    pageSize: 25,
+    currentPage: 1,
     user: auth.getCurrentUser()
+  };
+
+  handlePageChange = page => {
+    this.setState({
+      currentPage: page
+    });
   };
 
   async componentDidMount() {
@@ -54,65 +67,30 @@ class Recipe extends Component {
   };
 
   render() {
-    const {
-      name,
-      price,
-      prepTime,
-      servings,
-      followers,
-      ingredients,
-      instructions,
-      owner
-    } = this.state.data;
-    const { user } = this.state;
+    const { ingredients, instructions, owner } = this.state.data;
+    const { user, data, pageSize, currentPage } = this.state;
+    const pagedIngredients = paginate(ingredients, currentPage, pageSize);
+    const canEdit = user && (user._id === owner || !owner);
     return (
       <React.Fragment>
-        <h1 className="editable">{name}</h1>
-        {((user && owner === user._id) || !owner) && (
-          <i
-            className="blue clickable fa fa-pencil small"
-            onClick={this.openRecipeToEdit}
-          ></i>
-        )}
-        <br style={{ clear: "both" }} />
-
-        <div className="card-deck">
-          <div className="card text-white bg-primary">
-            <div className="card-header">Precio</div>
-            <div className="card-body">
-              <h5 className="card-title">${price}</h5>
-            </div>
-          </div>
-          <div className="card text-white bg-success">
-            <div className="card-header">Tiempo de preparación</div>
-            <div className="card-body">
-              <h5 className="card-title">{prepTime} min</h5>
-            </div>
-          </div>
-          <div className="card text-white bg-info">
-            <div className="card-header">Porciones</div>
-            <div className="card-body">
-              <h5 className="card-title">{servings} porciones</h5>
-            </div>
-          </div>
-          <div className="card text-white bg-secondary">
-            <div className="card-header">Seguidores</div>
-            <div className="card-body">
-              <h5 className="card-title">{followers.length}</h5>
-            </div>
-          </div>
-        </div>
-        <h3>Ingredientes</h3>
-        <RecipeIngredientsTable ingredients={ingredients} />
-        <h3>Instrucciones</h3>
-        {instructions.map((i, index) => (
-          <p key={index}>
-            {index + 1}. {i}
-          </p>
-        ))}
+        <RecipeHeader recipe={data} canEdit={canEdit} />
+        <Container className="mt--7" fluid>
+          <RecipeIngredientsTable
+            ingredients={pagedIngredients}
+            itemsCount={ingredients.length}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={this.handlePageChange}
+          />
+          <Row className="mt-5">
+            <Col>
+              <RecipeInstructions instructions={instructions} />
+            </Col>
+          </Row>
+        </Container>
       </React.Fragment>
     );
   }
 }
 
-export default Recipe;
+export default withRouter(Recipe);

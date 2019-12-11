@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import _ from "lodash";
 import IngredientsTable from "./ingredientsTable";
-import Pagination from "./../common/pagination";
-import SearchBox from "./../common/searchBox";
 import {
   getMyIngredients,
   deleteIngredient,
@@ -11,10 +9,11 @@ import {
 import { paginate } from "./../../utils/paginate";
 import auth from "../../services/authService";
 import { toast } from "react-toastify";
-import NewLiderIngredientForm from "./newLiderIngredientForm";
 import IngredientForm from "./ingredientForm";
 import DeleteModal from "../common/deleteModal";
-import IngredientSearch from "./ingredientSearch";
+import IngredientsHeader from "../Headers/IngredientsHeader";
+import { Container } from "reactstrap";
+import Modal from "./../common/modal";
 
 class Ingredients extends Component {
   state = {
@@ -27,6 +26,11 @@ class Ingredients extends Component {
     deleteModal: {
       showModal: false,
       item: {}
+    },
+    formModal: {
+      showModal: false,
+      header: "",
+      body: ""
     }
   };
 
@@ -60,7 +64,7 @@ class Ingredients extends Component {
 
     this.setState({ ingredients });
 
-    if (!user || !ingredient.followers.includes(user._id)) return;
+    if (!user) return;
 
     try {
       await deleteIngredient(ingredient._id);
@@ -80,6 +84,14 @@ class Ingredients extends Component {
     } catch (ex) {
       toast.error("Hubo un error actualizando este ingrediente");
     }
+  };
+
+  handleIngredientUpdate = ingredient => {
+    const { ingredients: originalIngredients } = this.state;
+    let ingredients = originalIngredients.filter(i => i._id !== ingredient._id);
+    ingredients.push(ingredient);
+
+    this.setState({ ingredients });
   };
 
   getPagedData = () => {
@@ -113,6 +125,27 @@ class Ingredients extends Component {
     });
   };
 
+  toggleFormModal = item => {
+    const { showModal } = this.state.formModal;
+    if (!item || showModal)
+      return this.setState({ formModal: { showModal: false } });
+
+    const header = item.name;
+    const body = (
+      <IngredientForm
+        ingredient={item}
+        onIngredientSave={this.handleIngredientUpdate}
+      />
+    );
+    this.setState({
+      formModal: {
+        showModal: true,
+        header,
+        body
+      }
+    });
+  };
+
   addIngredientToTable = async ingredient => {
     const ingredients = [...this.state.ingredients];
     ingredients.push(ingredient);
@@ -127,16 +160,23 @@ class Ingredients extends Component {
       item: deleteModalItem
     } = this.state.deleteModal;
 
+    const {
+      showModal: showFormModal,
+      header: formModalHeader,
+      body: formModalBody
+    } = this.state.formModal;
+
+    const { hasPlusColumn, onAddedIngredient } = this.props;
+
     const { totalCount, data: ingredients } = this.getPagedData();
 
     return (
-      <div className="row">
-        <div className="col-md-8 col-sm-12">
-          <SearchBox
-            value={searchQuery}
-            onChange={this.handleSearch}
-            placeholder="Buscar en mis ingredientes..."
-          />
+      <React.Fragment>
+        <IngredientsHeader
+          onAddedIngredient={this.addIngredientToTable}
+          onIngredientSave={this.addIngredientToTable}
+        />
+        <Container className="mt--7" fluid>
           <DeleteModal
             showModal={showDeleteModal}
             toggle={this.toggleDeleteModal}
@@ -144,31 +184,35 @@ class Ingredients extends Component {
             onSecondaryBtnClick={this.toggleDeleteModal}
             item={deleteModalItem}
           />
+          <Modal
+            header={formModalHeader}
+            showModal={showFormModal}
+            toggle={this.toggleFormModal}
+            body={formModalBody}
+            primaryBtnText={"Guardar"}
+            form="ingredient-form"
+            secondaryBtnText={"Cerrar"}
+            onSecondaryBtnClick={this.toggleFormModal}
+            size="lg"
+          ></Modal>
           <IngredientsTable
             ingredients={ingredients}
             onSort={this.handleSort}
             onRefresh={this.handleRefresh}
             onDelete={this.toggleDeleteModal}
             sortColumn={sortColumn}
-          />
-          <Pagination
             itemsCount={totalCount}
             pageSize={pageSize}
             currentPage={currentPage}
             onPageChange={this.handlePageChange}
+            searchValue={searchQuery}
+            onSearchChange={this.handleSearch}
+            onItemClick={this.toggleFormModal}
+            hasPlusColumn={hasPlusColumn}
+            onAddedIngredient={onAddedIngredient}
           />
-        </div>
-        <div className="col-md-4 col-sm-12">
-          <IngredientSearch onAddedIngredient={this.addIngredientToTable} />
-          <NewLiderIngredientForm
-            onIngredientSave={this.addIngredientToTable}
-          />
-          <IngredientForm
-            newIngredient={true}
-            onIngredientSave={this.addIngredientToTable}
-          />
-        </div>
-      </div>
+        </Container>
+      </React.Fragment>
     );
   }
 }

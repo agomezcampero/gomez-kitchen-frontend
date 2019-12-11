@@ -34,7 +34,6 @@ class NewLiderIngredientForm extends Form {
     const { user } = this.state;
     return (
       <div>
-        <h4>Agregar Ingrediente Lider</h4>
         <form onSubmit={this.handleSubmit}>
           {this.renderInput("liderId", "ID Lider")}
           {user && this.renderButton("Guardar")}

@@ -7,11 +7,13 @@ function recipeUrl(id) {
 }
 
 export function getMyRecipes() {
-  return http.get(endpoint + "/following/me");
+  return http.get(endpoint + "/following/me?itemsPerPage=200");
 }
 
 export function getRecipes(query) {
-  return http.get(endpoint + `?search=${query.replace(/ /g, "+")}`);
+  return http.get(
+    endpoint + `?search=${query.replace(/ /g, "+")}&itemsPerPage=50`
+  );
 }
 
 export function deleteRecipe(id) {

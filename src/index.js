@@ -6,6 +6,9 @@ import * as serviceWorker from "./serviceWorker";
 import "bootstrap/dist/css/bootstrap.css";
 import "font-awesome/css/font-awesome.css";
 import "react-sliding-pane/dist/react-sliding-pane.css";
+import "./assets/vendor/nucleo/css/nucleo.css";
+import "./assets/vendor/@fortawesome/fontawesome-free/css/all.min.css";
+import "./assets/scss/argon-dashboard-react.scss";
 import { BrowserRouter } from "react-router-dom";
 
 ReactDOM.render(

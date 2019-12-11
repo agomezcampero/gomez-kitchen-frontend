@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import _ from "lodash";
 import RecipesTable from "./recipesTable";
-import Pagination from "./../common/pagination";
-import SearchBox from "./../common/searchBox";
 import {
   getMyRecipes,
   deleteRecipe,
@@ -12,7 +10,8 @@ import { paginate } from "./../../utils/paginate";
 import auth from "../../services/authService";
 import { toast } from "react-toastify";
 import DeleteModal from "../common/deleteModal";
-import RecipeSearch from "./recipeSearch";
+import RecipesHeader from "../Headers/RecipesHeader";
+import { Container } from "reactstrap";
 
 class Recipes extends Component {
   state = {
@@ -58,7 +57,7 @@ class Recipes extends Component {
 
     this.setState({ recipes });
 
-    if (!user || !recipe.followers.includes(user._id)) return;
+    if (!user) return;
 
     try {
       await deleteRecipe(recipe._id);
@@ -117,10 +116,6 @@ class Recipes extends Component {
     this.setState({ recipes });
   };
 
-  handleNewRecipeClick = () => {
-    this.props.history.push("/recipes/new");
-  };
-
   render() {
     const { pageSize, currentPage, sortColumn, searchQuery } = this.state;
 
@@ -132,13 +127,9 @@ class Recipes extends Component {
     const { totalCount, data: recipes } = this.getPagedData();
 
     return (
-      <div className="row">
-        <div className="col-md-8 col-sm-12">
-          <SearchBox
-            value={searchQuery}
-            onChange={this.handleSearch}
-            placeholder="Buscar en mis recetas..."
-          />
+      <React.Fragment>
+        <RecipesHeader onAddedRecipe={this.addRecipeToTable} />
+        <Container className="mt--7" fluid>
           <DeleteModal
             showModal={showDeleteModal}
             toggle={this.toggleDeleteModal}
@@ -152,21 +143,15 @@ class Recipes extends Component {
             onRefresh={this.handleRefresh}
             onDelete={this.toggleDeleteModal}
             sortColumn={sortColumn}
-          />
-          <Pagination
             itemsCount={totalCount}
             pageSize={pageSize}
             currentPage={currentPage}
             onPageChange={this.handlePageChange}
+            searchValue={searchQuery}
+            onSearchChange={this.handleSearch}
           />
-        </div>
-        <div className="col-md-4 col-sm-12">
-          <RecipeSearch
-            onAddedRecipe={this.addRecipeToTable}
-            onNewRecipe={this.handleNewRecipeClick}
-          />
-        </div>
-      </div>
+        </Container>
+      </React.Fragment>
     );
   }
 }

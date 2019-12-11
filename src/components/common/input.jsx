@@ -1,12 +1,20 @@
 import React from "react";
+import { FormGroup, Input as RSInput } from "reactstrap";
 
 const Input = ({ name, label, error, ...rest }) => {
   return (
-    <div className="form-group">
-      <label htmlFor={name}>{label}</label>
-      <input {...rest} id={name} name={name} className="form-control" />
+    <FormGroup>
+      <label className="form-control-label" htmlFor={name}>
+        {label}
+      </label>
+      <RSInput
+        className="form-control-alternative"
+        id={name}
+        name={name}
+        {...rest}
+      />
       {error && <div className="alert alert-danger">{error}</div>}
-    </div>
+    </FormGroup>
   );
 };
 

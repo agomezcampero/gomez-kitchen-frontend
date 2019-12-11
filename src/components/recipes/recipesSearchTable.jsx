@@ -15,6 +15,7 @@ class RecipesSearchTable extends Component {
       )
     },
     { path: "price", label: "Precio" },
+    { path: "servings", label: "Porciones" },
     {
       key: "plus",
       label: "",
@@ -33,11 +34,20 @@ class RecipesSearchTable extends Component {
   }
 
   render() {
-    const { recipes } = this.props;
+    const { recipes, ...rest } = this.props;
 
-    if (!recipes.length) return null;
+    if (!recipes.length)
+      return <h2>No se encontraron recetas, pruebe otra búsqueda</h2>;
 
-    return <Table data={recipes} columns={this.columns} sortable={false} />;
+    return (
+      <Table
+        title="Resultados"
+        data={recipes}
+        columns={this.columns}
+        sortable={false}
+        {...rest}
+      />
+    );
   }
 }
 

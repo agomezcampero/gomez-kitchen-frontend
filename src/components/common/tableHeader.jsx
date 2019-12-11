@@ -23,13 +23,14 @@ class TableHeader extends Component {
 
   render() {
     return (
-      <thead>
+      <thead className="thead-light">
         <tr>
           {this.props.columns.map(column => (
             <th
               key={column.path || column.key}
               onClick={() => this.raiseSort(column.path)}
               className="clickable"
+              scope="col"
             >
               {column.label} {this.renderSortIcon(column)}
             </th>

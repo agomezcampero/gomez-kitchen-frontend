@@ -7,6 +7,7 @@ import {
 } from "../../services/ingredientsService";
 import auth from "../../services/authService";
 import { toast } from "react-toastify";
+import { Row, Col } from "reactstrap";
 
 class IngredientForm extends Form {
   state = {
@@ -45,8 +46,11 @@ class IngredientForm extends Form {
   };
 
   async componentDidMount() {
-    const newIngredient = this.props.newIngredient;
+    const { newIngredient, ingredient } = this.props;
     if (newIngredient) return;
+
+    if (ingredient)
+      return this.setState({ data: this.mapToViewModel(ingredient) });
 
     const id = this.props.match.params.id;
     if (!id) return;
@@ -90,24 +94,21 @@ class IngredientForm extends Form {
 
   render() {
     const { user } = this.state;
-    const { owner, name } = this.state.data;
-    const { newIngredient } = this.props;
+    const { owner } = this.state.data;
     const options =
       (user && user._id === owner) || !owner ? {} : { disabled: true };
     return (
       <div>
-        <h4 className="mt-2">
-          {(newIngredient && "Agregar Ingrediente") || name}
-        </h4>
-        <form onSubmit={this.handleSubmit}>
-          {this.renderInput("name", "Nombre", options)}
-          {this.renderInput("price", "Precio", options)}
-          {this.renderInput("amount", "Cantidad", options)}
-          {this.renderInput("unit", "Unidad", options)}
-          {!newIngredient && this.renderInput("liderId", "ID Lider", options)}
-          {user &&
-            (user._id === owner || !owner) &&
-            this.renderButton("Guardar")}
+        <form id="ingredient-form" onSubmit={this.handleSubmit}>
+          <Row>
+            <Col>{this.renderInput("name", "Nombre", options)}</Col>
+            <Col>{this.renderInput("price", "Precio", options)}</Col>
+          </Row>
+          <Row>
+            <Col>{this.renderInput("amount", "Cantidad", options)}</Col>
+            <Col>{this.renderInput("unit", "Unidad", options)}</Col>
+            <Col>{this.renderInput("liderId", "ID Lider", options)}</Col>
+          </Row>
         </form>
       </div>
     );

@@ -4,16 +4,22 @@ import Form from "../common/form";
 import { getRecipe, saveRecipe } from "../../services/recipesService";
 import auth from "../../services/authService";
 import { toast } from "react-toastify";
-import SlidingPane from "react-sliding-pane";
-import Modal from "react-modal";
+import Modal from "../common/modal";
 import { getMyIngredients } from "./../../services/ingredientsService";
-import AddIngredientsTable from "./addIngredientsTable";
 import {
+  Badge,
   InputGroup,
   InputGroupAddon,
   InputGroupText,
-  Button
+  Button,
+  Container,
+  Card,
+  CardHeader,
+  CardBody
 } from "reactstrap";
+import BlankHeader from "../Headers/BlankHeader";
+import Ingredients from "../ingredients/ingredients";
+import { withRouter } from "react-router-dom";
 
 class RecipeForm extends Form {
   state = {
@@ -29,8 +35,8 @@ class RecipeForm extends Form {
     },
     errors: {},
     user: auth.getCurrentUser(),
-    isPaneOpen: false,
-    ingredientsToAdd: []
+    ingredientsToAdd: [],
+    showModal: false
   };
 
   schema = {
@@ -49,8 +55,6 @@ class RecipeForm extends Form {
   };
 
   async componentDidMount() {
-    Modal.setAppElement(this.el);
-
     const { data } = await getMyIngredients();
     this.setState({ ingredientsToAdd: data.data });
 
@@ -104,18 +108,14 @@ class RecipeForm extends Form {
     this.setState({ data });
   };
 
-  handleInstructionsDelete = index => {
+  handleInstructionsDelete = (e, index) => {
+    e.preventDefault();
     const instructions = [...this.state.data.instructions];
     instructions.splice(index, 1);
     let data = { ...this.state.data };
     data.instructions = instructions;
 
     this.setState({ data });
-  };
-
-  openPane = e => {
-    e.preventDefault();
-    this.setState({ isPaneOpen: true });
   };
 
   handleAddedIngredient = ingredient => {
@@ -148,109 +148,133 @@ class RecipeForm extends Form {
     this.setState({ data });
   };
 
+  toggleModal = () => {
+    this.setState({ showModal: !this.state.showModal });
+  };
+
   render() {
-    const { user, ingredientsToAdd, isPaneOpen } = this.state;
+    const { user, showModal } = this.state;
     const { ingredients, owner, name, instructions } = this.state.data;
     const { newRecipe } = this.props;
     const canEdit = (user && user._id === owner) || !owner;
     const options = canEdit ? {} : { disabled: true };
     return (
-      <div ref={ref => (this.el = ref)}>
-        <h4 className="mt-2">{(newRecipe && "Agregar Receta") || name}</h4>
-        <form onSubmit={this.handleSubmit}>
-          <div className="form-row">
-            <div className="col-6">
-              {this.renderInput("name", "Nombre", options)}
-            </div>
-            <div className="col-md-3 col-sm-6">
-              {this.renderInput("prepTime", "Tiempo", options)}
-            </div>
-            <div className="col-md-3 col-sm-6">
-              {this.renderInput("servings", "Porciones", options)}
-            </div>
-          </div>
-          <div className="row mx-1">
-            <h4 className="editable">Ingredientes</h4>
-            {canEdit && (
-              <button className="btn btn-primary ml-2" onClick={this.openPane}>
-                Agregar Ingredientes
-              </button>
-            )}
-            {ingredients.map((i, index) => (
-              <InputGroup className="my-1" key={i._id}>
-                <InputGroupAddon addonType="prepend">{i.name}</InputGroupAddon>
-                <input
-                  value={i.amount}
-                  onChange={this.handleIngredientChange}
-                  name={index}
-                  className="form-control"
-                ></input>
-                {!isPaneOpen && (
-                  <InputGroupAddon addonType="append">
-                    <InputGroupText>{i.unit}</InputGroupText>
-                    <Button
-                      color="danger"
-                      onClick={() => this.handleIngredientDelete(i)}
-                    >
-                      <i className="fa fa-times d.-none"></i>
-                    </Button>
-                  </InputGroupAddon>
-                )}
-              </InputGroup>
-            ))}
-            <SlidingPane
-              isOpen={this.state.isPaneOpen}
-              title="Selecciona Ingredientes para Agregar"
-              onRequestClose={() => {
-                // triggered on "<" on left top click or on outside click
-                this.setState({ isPaneOpen: false });
-              }}
-            >
-              <AddIngredientsTable
-                ingredients={ingredientsToAdd}
+      <div>
+        <BlankHeader title={(newRecipe && "Agregar Receta") || name} />
+        <Container className="mt--7" fluid>
+          <Card className="bg-secondary shadow">
+            <CardHeader className="bg-white border-0"></CardHeader>
+            <CardBody>
+              <form onSubmit={this.handleSubmit}>
+                <div className="form-row">
+                  <div className="col-6">
+                    {this.renderInput("name", "Nombre", options)}
+                  </div>
+                  <div className="col-md-3 col-sm-6">
+                    {this.renderInput("prepTime", "Tiempo", options)}
+                  </div>
+                  <div className="col-md-3 col-sm-6">
+                    {this.renderInput("servings", "Porciones", options)}
+                  </div>
+                </div>
+                <hr className="my-4" />
+                <div className="row mx-1">
+                  <h4 className="editable">
+                    Ingredientes
+                    {canEdit && (
+                      <Badge
+                        color="primary"
+                        onClick={this.toggleModal}
+                        className="mx-2 clickable"
+                      >
+                        <i className="fa fa-plus"></i>
+                      </Badge>
+                    )}
+                  </h4>
+                  {ingredients.map((i, index) => (
+                    <InputGroup className="my-1" key={i._id}>
+                      <InputGroupAddon addonType="prepend">
+                        {i.name}
+                      </InputGroupAddon>
+                      <input
+                        value={i.amount}
+                        onChange={this.handleIngredientChange}
+                        name={index}
+                        className="form-control"
+                      ></input>
+                      <InputGroupAddon addonType="append">
+                        <InputGroupText>{i.unit}</InputGroupText>
+                        <Button
+                          color="danger"
+                          onClick={() => this.handleIngredientDelete(i)}
+                        >
+                          <i className="fa fa-times d.-none"></i>
+                        </Button>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  ))}
+                </div>
+                <hr className="my-4" />
+                <div className="row mx-1">
+                  <h4 className="editable">
+                    Instrucciones
+                    {canEdit && (
+                      <Badge
+                        color="primary"
+                        onClick={this.addInstruction}
+                        className="mx-2 clickable"
+                      >
+                        <i className="fa fa-plus"></i>
+                      </Badge>
+                    )}
+                  </h4>
+                  {instructions.map((i, index) => (
+                    <InputGroup key={index} className="my-1">
+                      <InputGroupAddon addonType="prepend">
+                        <InputGroupText>{index + 1}</InputGroupText>
+                      </InputGroupAddon>
+
+                      <textarea
+                        value={i}
+                        onChange={this.handleInstructionsChange}
+                        name={index}
+                        className="form-control"
+                      ></textarea>
+                      <InputGroupAddon addonType="append">
+                        <button
+                          className="btn btn-danger"
+                          onClick={e => this.handleInstructionsDelete(e, index)}
+                        >
+                          <i className="fa fa-times"></i>
+                        </button>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  ))}
+                </div>
+                <hr className="my-4" />
+
+                {canEdit && this.renderButton("Guardar")}
+              </form>
+            </CardBody>
+          </Card>
+          <Modal
+            header="Agregar Ingredientes"
+            showModal={showModal}
+            toggle={this.toggleModal}
+            body={
+              <Ingredients
+                hasPlusColumn
                 onAddedIngredient={this.handleAddedIngredient}
               />
-            </SlidingPane>
-          </div>
-          <div className="row mx-1">
-            <h4 className="editable">Instrucciones</h4>
-            <button
-              className="btn btn-primary ml-2"
-              onClick={this.addInstruction}
-            >
-              Agregar Instrucción
-            </button>
-            {instructions.map((i, index) => (
-              <InputGroup key={index} className="my-1">
-                <InputGroupAddon addonType="prepend">
-                  <InputGroupText>{index + 1}</InputGroupText>
-                </InputGroupAddon>
-
-                <textarea
-                  value={i}
-                  onChange={this.handleInstructionsChange}
-                  name={index}
-                  className="form-control"
-                ></textarea>
-                {!isPaneOpen && (
-                  <InputGroupAddon addonType="append">
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => this.handleInstructionsDelete(index)}
-                    >
-                      <i className="fa fa-times"></i>
-                    </button>
-                  </InputGroupAddon>
-                )}
-              </InputGroup>
-            ))}
-          </div>
-
-          {canEdit && this.renderButton("Guardar")}
-        </form>
+            }
+            primaryBtnText={"Cerrar"}
+            onPrimaryBtnClick={this.toggleModal}
+            size="lg"
+          />
+        </Container>
       </div>
     );
   }
 }
 
-export default RecipeForm;
+export default withRouter(RecipeForm);

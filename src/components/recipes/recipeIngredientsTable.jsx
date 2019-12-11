@@ -16,9 +16,17 @@ class RecipeIngredientsTable extends Component {
   ];
 
   render() {
-    const { ingredients } = this.props;
+    const { ingredients, ...rest } = this.props;
 
-    return <Table data={ingredients} columns={this.columns} sortable={false} />;
+    return (
+      <Table
+        title="Ingredientes"
+        data={ingredients}
+        columns={this.columns}
+        sortable={false}
+        {...rest}
+      />
+    );
   }
 }
 

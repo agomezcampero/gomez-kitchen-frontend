@@ -7,11 +7,13 @@ function ingredientUrl(id) {
 }
 
 export function getMyIngredients() {
-  return http.get(endpoint + "/following/me");
+  return http.get(endpoint + "/following/me?itemsPerPage=200");
 }
 
 export function getIngredients(query) {
-  return http.get(`${endpoint}?search=${query.replace(/ /g, "+")}`);
+  return http.get(
+    `${endpoint}?search=${query.replace(/ /g, "+")}&itemsPerPage=50`
+  );
 }
 
 export function getLiderIngredients(query) {

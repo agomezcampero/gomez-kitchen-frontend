@@ -1,21 +1,30 @@
 import React, { Component } from "react";
-import { Alert, Button, Label } from "reactstrap";
-import SlidingPane from "react-sliding-pane";
+import {
+  Container,
+  Button,
+  Label,
+  Card,
+  CardBody,
+  CardHeader
+} from "reactstrap";
 import AddRecipesTable from "./addRecipesTable";
 import { getMyRecipes } from "./../../services/recipesService";
-import Modal from "react-modal";
+import CaluculatorHeader from "../Headers/CalculatorHeader";
+import Modal from "../common/modal";
+import { paginate } from "./../../utils/paginate";
 
 class Calculator extends Component {
   state = {
     recipes: [],
     price: 0,
-    isPaneOpen: false,
-    recipesToAdd: []
+    showModal: false,
+    recipesToAdd: [],
+    pageSize: 3,
+    currentPage: 1,
+    searchQuery: ""
   };
 
   async componentDidMount() {
-    Modal.setAppElement(this.el);
-
     const { data } = await getMyRecipes();
 
     this.setState({
@@ -23,8 +32,33 @@ class Calculator extends Component {
     });
   }
 
-  openPane = () => {
-    this.setState({ isPaneOpen: true });
+  handlePageChange = page => {
+    this.setState({
+      currentPage: page
+    });
+  };
+
+  getPagedData = () => {
+    const { pageSize, currentPage, recipesToAdd, searchQuery } = this.state;
+
+    const filtered = searchQuery ? this.getSearchData() : recipesToAdd;
+
+    return paginate(filtered, currentPage, pageSize);
+  };
+
+  getSearchData = () => {
+    const { recipesToAdd, searchQuery } = this.state;
+
+    var re = new RegExp(searchQuery.replace(/\\/g, ""), "g");
+    return recipesToAdd.filter(r => r.name.toLowerCase().match(re));
+  };
+
+  handleSearch = query => {
+    this.setState({ searchQuery: query, currentPage: 1 });
+  };
+
+  toggleModal = () => {
+    this.setState({ showModal: !this.state.showModal });
   };
 
   handleAddedRecipe = recipe => {
@@ -54,45 +88,68 @@ class Calculator extends Component {
   };
 
   render() {
-    const { recipesToAdd, recipes } = this.state;
+    const {
+      recipesToAdd,
+      recipes,
+      showModal,
+      pageSize,
+      currentPage,
+      searchQuery
+    } = this.state;
+
+    const pagedRecipes = this.getPagedData();
     return (
-      <div ref={ref => (this.el = ref)}>
-        <h1>Calcular Costo</h1>
-        <Alert color="success">Precio Actual: ${this.state.price}</Alert>
-        <Button color="success" onClick={this.openPane}>
-          Agregar Receta
-        </Button>
-        <SlidingPane
-          isOpen={this.state.isPaneOpen}
-          title="Selecciona Receta para Agregar"
-          onRequestClose={() => {
-            // triggered on "<" on left top click or on outside click
-            this.setState({ isPaneOpen: false });
-          }}
-        >
-          <AddRecipesTable
-            recipes={recipesToAdd}
-            onAddedRecipe={this.handleAddedRecipe}
-          />
-        </SlidingPane>
-        <div className="row my-2">
-          <Label className="col">Nombre</Label>
-          <Label className="col">Precio</Label>
-          <Label className="col">Porciones</Label>
-        </div>
-        {recipes.map((r, index) => (
-          <div className="row my-1" key={index}>
-            <hr className="w-100" />
-            <Label className="col">{r.name}</Label>
-            <Label className="col">${r.price}</Label>
-            <input
-              name={index}
-              className="col form-control"
-              value={r.servings}
-              onChange={this.handleServingsChange}
-            ></input>
-          </div>
-        ))}
+      <div>
+        <CaluculatorHeader price={this.state.price} />
+        <Container className="mt--7" fluid>
+          <Card className="bg-secondary shadow">
+            <CardHeader className="bg-white border-0">
+              <Button color="success" onClick={this.toggleModal}>
+                Agregar Receta
+              </Button>
+            </CardHeader>
+            <CardBody>
+              <Modal
+                header="Agregar Recetas"
+                showModal={showModal}
+                toggle={this.toggleModal}
+                body={
+                  <AddRecipesTable
+                    recipes={pagedRecipes}
+                    onAddedRecipe={this.handleAddedRecipe}
+                    pageSize={pageSize}
+                    currentPage={currentPage}
+                    onPageChange={this.handlePageChange}
+                    itemsCount={recipesToAdd.length}
+                    searchValue={searchQuery}
+                    onSearchChange={this.handleSearch}
+                  />
+                }
+                primaryBtnText={"Cerrar"}
+                onPrimaryBtnClick={this.toggleModal}
+                size="lg"
+              />
+              <h4 className="row my-2">
+                <Label className="col">Nombre</Label>
+                <Label className="col">Precio</Label>
+                <Label className="col">Porciones</Label>
+              </h4>
+              {recipes.map((r, index) => (
+                <div className="row" key={index}>
+                  <hr className="w-100" />
+                  <Label className="col">{r.name}</Label>
+                  <Label className="col">${r.price}</Label>
+                  <input
+                    name={index}
+                    className="col form-control"
+                    value={r.servings}
+                    onChange={this.handleServingsChange}
+                  ></input>
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        </Container>
       </div>
     );
   }
