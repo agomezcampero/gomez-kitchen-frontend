@@ -124,6 +124,11 @@ class RecipeForm extends Form {
   handleAddedIngredient = ingredient => {
     let data = { ...this.state.data };
     let ingredients = [...this.state.data.ingredients];
+    ingredient.extraUnits = [ingredient.unit].concat(
+      ingredient.extraUnits.map(function(eu) {
+        return [eu.unit];
+      })
+    );
     ingredients.push({ ...ingredient });
     data.ingredients = ingredients;
 
@@ -229,6 +234,7 @@ class RecipeForm extends Form {
                               value={i.unit}
                               onChange={this.handleUnitChange}
                               name={index}
+                              disabled={i.extraUnits.length === 1}
                             >
                               {i.extraUnits.map(eu => (
                                 <option key={eu}>{eu}</option>
