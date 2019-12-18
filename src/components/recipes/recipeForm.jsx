@@ -15,7 +15,10 @@ import {
   Container,
   Card,
   CardHeader,
-  CardBody
+  CardBody,
+  Row,
+  Table,
+  Input
 } from "reactstrap";
 import BlankHeader from "../Headers/BlankHeader";
 import Ingredients from "../ingredients/ingredients";
@@ -133,6 +136,12 @@ class RecipeForm extends Form {
     this.setState({ data });
   };
 
+  handleUnitChange = ({ currentTarget: input }) => {
+    const data = { ...this.state.data };
+    data.ingredients[parseInt(input.name, 10)].unit = input.value;
+    this.setState({ data });
+  };
+
   handleInstructionsChange = ({ currentTarget: input }) => {
     const data = { ...this.state.data };
     data.instructions[parseInt(input.name, 10)] = input.value;
@@ -178,8 +187,8 @@ class RecipeForm extends Form {
                   </div>
                 </div>
                 <hr className="my-4" />
-                <div className="row mx-1">
-                  <h4 className="editable">
+                <Row>
+                  <h4>
                     Ingredientes
                     {canEdit && (
                       <Badge
@@ -191,29 +200,54 @@ class RecipeForm extends Form {
                       </Badge>
                     )}
                   </h4>
-                  {ingredients.map((i, index) => (
-                    <InputGroup className="my-1" key={i._id}>
-                      <InputGroupAddon addonType="prepend">
-                        {i.name}
-                      </InputGroupAddon>
-                      <input
-                        value={i.amount}
-                        onChange={this.handleIngredientChange}
-                        name={index}
-                        className="form-control"
-                      ></input>
-                      <InputGroupAddon addonType="append">
-                        <InputGroupText>{i.unit}</InputGroupText>
-                        <Button
-                          color="danger"
-                          onClick={() => this.handleIngredientDelete(i)}
-                        >
-                          <i className="fa fa-times d.-none"></i>
-                        </Button>
-                      </InputGroupAddon>
-                    </InputGroup>
-                  ))}
-                </div>
+                </Row>
+                <Row>
+                  <Table size="sm">
+                    <thead>
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Cantidad</th>
+                        <th>Unidad</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ingredients.map((i, index) => (
+                        <tr key={index}>
+                          <td className="align-middle">{i.name}</td>
+                          <td>
+                            <input
+                              value={i.amount}
+                              onChange={this.handleIngredientChange}
+                              name={index}
+                              className="form-control"
+                            ></input>
+                          </td>
+                          <td>
+                            <Input
+                              type="select"
+                              value={i.unit}
+                              onChange={this.handleUnitChange}
+                              name={index}
+                            >
+                              {i.extraUnits.map(eu => (
+                                <option key={eu}>{eu}</option>
+                              ))}
+                            </Input>
+                          </td>
+                          <td>
+                            <Button
+                              color="danger"
+                              onClick={() => this.handleIngredientDelete(i)}
+                            >
+                              <i className="fa fa-times d.-none"></i>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Row>
                 <hr className="my-4" />
                 <div className="row mx-1">
                   <h4 className="editable">

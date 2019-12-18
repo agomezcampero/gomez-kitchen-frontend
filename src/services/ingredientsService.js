@@ -33,8 +33,9 @@ export function getIngredient(id) {
 }
 
 export function saveIngredient(ingredient) {
-  const { name, price, unit, amount, liderId } = ingredient;
-  const body = { name, price, unit, amount, liderId };
+  const { name, price, unit, amount, liderId, extraUnits } = ingredient;
+  extraUnits.forEach(eu => delete eu._id);
+  const body = { name, price, unit, amount, liderId, extraUnits };
 
   if (!ingredient._id) return http.post(endpoint, body);
 

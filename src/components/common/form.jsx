@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Joi from "joi-browser";
 import Input from "./input";
 import Select from "./select";
+import _ from "lodash";
 
 class Form extends Component {
   state = {
@@ -17,15 +18,25 @@ class Form extends Component {
 
     const errors = {};
     for (let item of error.details) {
-      errors[item.path[0]] = item.message;
+      errors[item.path.join(".")] = item.message;
     }
 
     return errors;
   };
 
   validateProperty = ({ name, value }) => {
-    const obj = { [name]: value };
-    const schema = { [name]: this.schema[name] };
+    const nameSplit = name.split(".");
+    const obj = { [nameSplit[nameSplit.length - 1]]: value };
+    let schema;
+    if (nameSplit.length === 1) schema = { [name]: this.schema[name] };
+    else if (nameSplit.length === 3) {
+      const children = this.arraySchemas[nameSplit[0]]._inner.children;
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].key === nameSplit[2]) {
+          schema = { [nameSplit[2]]: children[i].schema };
+        }
+      }
+    }
     const { error } = Joi.validate(obj, schema);
     return error ? error.details[0].message : null;
   };
@@ -49,7 +60,13 @@ class Form extends Component {
     else delete errors[input.name];
 
     const data = { ...this.state.data };
-    data[input.name] = input.value;
+    const nameSplit = input.name.split(".");
+    if (nameSplit.length === 1) data[input.name] = input.value;
+    else if (nameSplit.length === 2)
+      data[nameSplit[0]][nameSplit[1]] = input.value;
+    else if (nameSplit.length === 3)
+      data[nameSplit[0]][nameSplit[1]][nameSplit[2]] = input.value;
+
     this.setState({ data, errors });
   };
 
@@ -70,7 +87,7 @@ class Form extends Component {
       <Input
         name={name}
         label={label}
-        value={data[name]}
+        value={_.get(data, name)}
         onChange={this.handleChange}
         error={errors[name]}
         type={options.type || "text"}

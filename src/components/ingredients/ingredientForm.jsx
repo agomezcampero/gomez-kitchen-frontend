@@ -7,7 +7,8 @@ import {
 } from "../../services/ingredientsService";
 import auth from "../../services/authService";
 import { toast } from "react-toastify";
-import { Row, Col } from "reactstrap";
+import { Row, Col, Badge, Button } from "reactstrap";
+import Delete from "./../common/delete";
 
 class IngredientForm extends Form {
   state = {
@@ -16,12 +17,26 @@ class IngredientForm extends Form {
       price: "",
       unit: "",
       amount: "",
+      extraUnits: [],
       liderId: "",
       followers: [],
       owner: ""
     },
     errors: {},
     user: auth.getCurrentUser()
+  };
+
+  arraySchemas = {
+    extraUnits: Joi.object().keys({
+      unit: Joi.string()
+        .required()
+        .label("Unidad"),
+      amount: Joi.number()
+        .required()
+        .min(0)
+        .label("Cantidad"),
+      _id: Joi.string()
+    })
   };
 
   schema = {
@@ -37,7 +52,9 @@ class IngredientForm extends Form {
       .label("Unidad"),
     amount: Joi.number()
       .required()
-      .min(0),
+      .min(0)
+      .label("Cantidad"),
+    extraUnits: Joi.array().items(this.arraySchemas.extraUnits),
     liderId: Joi.string().allow(""),
     followers: Joi.array().allow([]),
     owner: Joi.string()
@@ -74,6 +91,7 @@ class IngredientForm extends Form {
       price: ingredient.price,
       unit: ingredient.unit,
       amount: ingredient.amount,
+      extraUnits: ingredient.extraUnits,
       liderId: ingredient.liderId,
       followers: ingredient.followers,
       owner: ingredient.owner
@@ -92,11 +110,29 @@ class IngredientForm extends Form {
     }
   };
 
+  addExtraUnit = () => {
+    let data = { ...this.state.data };
+    let extraUnits = [...data.extraUnits];
+    extraUnits.push({ unit: "", amount: "" });
+    data.extraUnits = extraUnits;
+    this.setState({ data });
+  };
+
+  deleteExtraUnit = i => {
+    let data = { ...this.state.data };
+    let extraUnits = [
+      ...data.extraUnits.slice(0, i),
+      ...data.extraUnits.slice(i + 1)
+    ];
+    data.extraUnits = extraUnits;
+    this.setState({ data });
+  };
+
   render() {
     const { user } = this.state;
-    const { owner } = this.state.data;
-    const options =
-      (user && user._id === owner) || !owner ? {} : { disabled: true };
+    const { owner, extraUnits } = this.state.data;
+    const canEdit = (user && user._id === owner) || !owner;
+    const options = canEdit ? {} : { disabled: true };
     return (
       <div>
         <form id="ingredient-form" onSubmit={this.handleSubmit}>
@@ -109,6 +145,41 @@ class IngredientForm extends Form {
             <Col>{this.renderInput("unit", "Unidad", options)}</Col>
             <Col>{this.renderInput("liderId", "ID Lider", options)}</Col>
           </Row>
+          <Row>
+            <h4 className="editable">
+              Más Unidades
+              {canEdit && (
+                <Badge
+                  color="primary"
+                  className="mx-2 clickable"
+                  onClick={this.addExtraUnit}
+                >
+                  <i className="fa fa-plus"></i>
+                </Badge>
+              )}
+            </h4>
+          </Row>
+          {extraUnits.map((extra, i) => (
+            <Row key={i}>
+              <Col>
+                {this.renderInput(
+                  `extraUnits.${i}.amount`,
+                  "Cantidad",
+                  options
+                )}
+              </Col>
+              <Col>
+                {this.renderInput(`extraUnits.${i}.unit`, "Unidad", options)}
+              </Col>
+              <Button
+                color="danger"
+                className="my-4"
+                onClick={() => this.deleteExtraUnit(i)}
+              >
+                <Delete></Delete>
+              </Button>
+            </Row>
+          ))}
         </form>
       </div>
     );
