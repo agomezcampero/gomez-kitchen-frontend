@@ -8,7 +8,11 @@ import {
   CardBody,
   CardHeader,
   ListGroup,
-  ListGroupItem
+  ListGroupItem,
+  Input,
+  InputGroupAddon,
+  Form,
+  InputGroup
 } from "reactstrap";
 import AddRecipesTable from "./addRecipesTable";
 import { getMyRecipes } from "./../../services/recipesService";
@@ -17,27 +21,39 @@ import Modal from "../common/modal";
 import { paginate } from "./../../utils/paginate";
 import { generateList as dbGenerateList } from "./../../services/calculateService";
 import CopyModal from "./../common/copyModal";
+import AddMenusTable from "./addMenusTable";
+import {
+  getMyMenus,
+  getMenu,
+  saveMenu as saveMenuInDb
+} from "./../../services/menusService";
+import { toast } from "react-toastify";
 
 class Calculator extends Component {
   state = {
     recipes: [],
     price: 0,
     showModal: false,
+    selectedModal: "",
     showListModal: false,
     listIngredients: [],
     listIngredientsText: "",
     listIngredientsCopied: false,
     recipesToAdd: [],
+    menusToAdd: [],
     pageSize: 10,
     currentPage: 1,
-    searchQuery: ""
+    searchQuery: "",
+    name: ""
   };
 
   async componentDidMount() {
-    const { data } = await getMyRecipes();
+    const { data: recipes } = await getMyRecipes();
+    const { data: menus } = await getMyMenus();
 
     this.setState({
-      recipesToAdd: data.data
+      recipesToAdd: recipes.data,
+      menusToAdd: menus.data
     });
   }
 
@@ -47,19 +63,19 @@ class Calculator extends Component {
     });
   };
 
-  getPagedData = () => {
-    const { pageSize, currentPage, recipesToAdd, searchQuery } = this.state;
+  getPagedData = items => {
+    const { pageSize, currentPage, searchQuery } = this.state;
 
-    const filtered = searchQuery ? this.getSearchData() : recipesToAdd;
+    const filtered = searchQuery ? this.getSearchData(items) : items;
 
     return paginate(filtered, currentPage, pageSize);
   };
 
-  getSearchData = () => {
-    const { recipesToAdd, searchQuery } = this.state;
+  getSearchData = items => {
+    const { searchQuery } = this.state;
 
     var re = new RegExp(searchQuery.replace(/\\/g, ""), "g");
-    return recipesToAdd.filter(r => r.name.toLowerCase().match(re));
+    return items.filter(item => item.name.toLowerCase().match(re));
   };
 
   handleSearch = query => {
@@ -70,15 +86,61 @@ class Calculator extends Component {
     this.setState({ showModal: !this.state.showModal });
   };
 
+  openModal = selected => {
+    this.setState({ selectedModal: selected });
+    this.toggleModal();
+  };
+
+  getModalBody = () => {
+    const { selectedModal, pageSize, currentPage, searchQuery } = this.state;
+    if (selectedModal === "recipes") {
+      const { recipesToAdd } = this.state;
+      const pagedRecipes = this.getPagedData(recipesToAdd);
+      return (
+        <AddRecipesTable
+          recipes={pagedRecipes}
+          onAddedRecipe={this.handleAddedRecipe}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          onPageChange={this.handlePageChange}
+          itemsCount={recipesToAdd.length}
+          searchValue={searchQuery}
+          onSearchChange={this.handleSearch}
+        />
+      );
+    } else if (selectedModal === "menus") {
+      const { menusToAdd } = this.state;
+      const pagedMenus = this.getPagedData(menusToAdd);
+      return (
+        <AddMenusTable
+          menus={pagedMenus}
+          onAddedMenu={this.handleAddedMenu}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          onPageChange={this.handlePageChange}
+          itemsCount={menusToAdd.length}
+          searchValue={searchQuery}
+          onSearchChange={this.handleSearch}
+        />
+      );
+    }
+  };
+
   toggleListModal = () => {
     this.setState({ showListModal: !this.state.showListModal });
   };
 
   handleAddedRecipe = recipe => {
     let recipes = [...this.state.recipes];
-    recipe.pricePerServing = recipe.price / recipe.servings;
     recipes.push({ ...recipe });
 
+    this.setState({ recipes });
+    this.setPrice(recipes);
+  };
+
+  handleAddedMenu = async id => {
+    const { data: menu } = await getMenu(id);
+    let recipes = [...this.state.recipes, ...menu.recipes];
     this.setState({ recipes });
     this.setPrice(recipes);
   };
@@ -113,51 +175,72 @@ class Calculator extends Component {
     this.toggleListModal();
   };
 
+  handleNameChange = ({ currentTarget: input }) => {
+    this.setState({ name: input.value });
+  };
+
+  saveMenu = async e => {
+    e.preventDefault();
+    try {
+      const menu = { name: this.state.name, recipes: this.state.recipes };
+      await saveMenuInDb(menu);
+      toast.success("Menú guardado");
+    } catch (ex) {
+      toast.error("No se pudo guardar el menú");
+    }
+  };
+
   render() {
     const {
-      recipesToAdd,
       recipes,
       showModal,
       showListModal,
       listIngredients,
       listIngredientsText,
-      listIngredientsCopied,
-      pageSize,
-      currentPage,
-      searchQuery
+      listIngredientsCopied
     } = this.state;
 
-    const pagedRecipes = this.getPagedData();
+    const modalBody = showModal ? this.getModalBody() : "";
+
     return (
       <div>
         <CaluculatorHeader price={this.state.price} />
         <Container className="mt--7" fluid>
           <Card className="bg-secondary shadow">
             <CardHeader className="bg-white border-0">
-              <Button color="success" onClick={this.toggleModal}>
-                Agregar Receta
-              </Button>
-              <Button color="primary" onClick={this.generateList}>
-                Generar Lista
-              </Button>
+              <Form inline>
+                <Button
+                  color="success"
+                  onClick={() => this.openModal("recipes")}
+                >
+                  Agregar Receta
+                </Button>
+                <Button color="default" onClick={() => this.openModal("menus")}>
+                  Agregar Menú
+                </Button>
+                <Button color="primary" onClick={this.generateList}>
+                  Generar Lista
+                </Button>
+                <InputGroup className="col-4 ml-auto">
+                  <Input
+                    placeholder="Nombre"
+                    value={this.state.name}
+                    onChange={this.handleNameChange}
+                  />
+                  <InputGroupAddon addonType="append">
+                    <Button color="info" onClick={this.saveMenu}>
+                      Guardar
+                    </Button>
+                  </InputGroupAddon>
+                </InputGroup>
+              </Form>
             </CardHeader>
             <CardBody>
               <Modal
                 header="Agregar Recetas"
                 showModal={showModal}
                 toggle={this.toggleModal}
-                body={
-                  <AddRecipesTable
-                    recipes={pagedRecipes}
-                    onAddedRecipe={this.handleAddedRecipe}
-                    pageSize={pageSize}
-                    currentPage={currentPage}
-                    onPageChange={this.handlePageChange}
-                    itemsCount={recipesToAdd.length}
-                    searchValue={searchQuery}
-                    onSearchChange={this.handleSearch}
-                  />
-                }
+                body={modalBody}
                 primaryBtnText={"Cerrar"}
                 onPrimaryBtnClick={this.toggleModal}
                 size="lg"
