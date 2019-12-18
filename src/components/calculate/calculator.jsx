@@ -2,24 +2,33 @@ import React, { Component } from "react";
 import {
   Container,
   Button,
+  Badge,
   Label,
   Card,
   CardBody,
-  CardHeader
+  CardHeader,
+  ListGroup,
+  ListGroupItem
 } from "reactstrap";
 import AddRecipesTable from "./addRecipesTable";
 import { getMyRecipes } from "./../../services/recipesService";
 import CaluculatorHeader from "../Headers/CalculatorHeader";
 import Modal from "../common/modal";
 import { paginate } from "./../../utils/paginate";
+import { generateList as dbGenerateList } from "./../../services/calculateService";
+import CopyModal from "./../common/copyModal";
 
 class Calculator extends Component {
   state = {
     recipes: [],
     price: 0,
     showModal: false,
+    showListModal: false,
+    listIngredients: [],
+    listIngredientsText: "",
+    listIngredientsCopied: false,
     recipesToAdd: [],
-    pageSize: 3,
+    pageSize: 10,
     currentPage: 1,
     searchQuery: ""
   };
@@ -61,6 +70,10 @@ class Calculator extends Component {
     this.setState({ showModal: !this.state.showModal });
   };
 
+  toggleListModal = () => {
+    this.setState({ showListModal: !this.state.showListModal });
+  };
+
   handleAddedRecipe = recipe => {
     let recipes = [...this.state.recipes];
     recipe.pricePerServing = recipe.price / recipe.servings;
@@ -87,11 +100,28 @@ class Calculator extends Component {
     this.setState({ price });
   };
 
+  generateList = async () => {
+    const { data: ingredients } = await dbGenerateList(this.state.recipes);
+    const ingredientsText = ingredients
+      .map(ing => [`${ing.name} | ${ing.amount} ${ing.unit}`])
+      .join("\n");
+    this.setState({
+      listIngredients: ingredients,
+      listIngredientsText: ingredientsText,
+      listIngredientsCopied: false
+    });
+    this.toggleListModal();
+  };
+
   render() {
     const {
       recipesToAdd,
       recipes,
       showModal,
+      showListModal,
+      listIngredients,
+      listIngredientsText,
+      listIngredientsCopied,
       pageSize,
       currentPage,
       searchQuery
@@ -106,6 +136,9 @@ class Calculator extends Component {
             <CardHeader className="bg-white border-0">
               <Button color="success" onClick={this.toggleModal}>
                 Agregar Receta
+              </Button>
+              <Button color="primary" onClick={this.generateList}>
+                Generar Lista
               </Button>
             </CardHeader>
             <CardBody>
@@ -128,6 +161,33 @@ class Calculator extends Component {
                 primaryBtnText={"Cerrar"}
                 onPrimaryBtnClick={this.toggleModal}
                 size="lg"
+              />
+              <CopyModal
+                header="Lista"
+                showModal={showListModal}
+                toggle={this.toggleListModal}
+                body={
+                  <ListGroup>
+                    {listIngredients.map((i, index) => (
+                      <ListGroupItem
+                        key={index}
+                        className="justify-content-between"
+                      >
+                        {i.name}{" "}
+                        <Badge className="ml-2" color="primary">
+                          {i.amount} {i.unit}
+                        </Badge>
+                      </ListGroupItem>
+                    ))}
+                  </ListGroup>
+                }
+                primaryBtnText="Copiar"
+                secondaryBtnText="Cerrar"
+                onSecondaryBtnClick={this.toggleListModal}
+                size="lg"
+                copyText={listIngredientsText}
+                copied={listIngredientsCopied}
+                onCopy={() => this.setState({ listIngredientsCopied: true })}
               />
               <h4 className="row my-2">
                 <Label className="col">Nombre</Label>
